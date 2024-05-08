@@ -1,65 +1,108 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PrimaryButton from "../components/PrimaryButton";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
 import ProductCard from "../components/ProductCard";
-import { productCardData } from "../data";
-
 import { useQuery, gql } from "@apollo/client";
-import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 
 function Products() {
-  const GET_NAV_ITEMS = gql`
-    query {
+  const [tagId, setTagId] = useState('');
+
+  useEffect(() => {
+
+    setTagId("");
+    
+  }, []);
+
+  const GET_PRODUCTS = gql`
+    query GetProducts($tagId: ID!) {
       tags(shopId: "cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ==") {
         nodes {
           name
           displayTitle
           slug
+          _id
+        }
+      }
+      catalogItems(
+        shopIds: ["cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ=="]
+        tagIds: [$tagId]
+      ) {
+        edges {
+          node {
+            ... on CatalogItemProduct {
+              product {
+                title
+                description
+                _id
+                variants {
+                  _id
+                  title
+                  media {
+                    URLs {
+                      small
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }
   `;
 
-  const { loading, error, data } = useQuery(GET_NAV_ITEMS);
+  const { loading, error, data } = useQuery(GET_PRODUCTS, {
+    variables: { tagId },
+  });
+
+  // console.log()
+
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
-  // console.log(data.tags)
   return (
     <>
       <section className="my-[40px] mx-auto container">
         <div className="flex lg:justify-between">
           <div className="flex items-center gap-[30px]">
-
-            <Link href="#all-products" className="font-bold  text-[#1E2832] text-[16px]">
+            <Link
+              href="#all-products"
+              scroll={false}
+              className="font-bold text-[#1E2832] text-[16px]"
+            >
               All Products
             </Link>
-
-            {data.tags.nodes.map(({ name, displayTitle, slug }: any) => (
-              <Link href={{
-                pathname: "/",
-                query: { tag: slug}
-              }} className="text-[#1E2832] text-[16px]">{displayTitle}</Link>
+            {data.tags.nodes.map(({ displayTitle, slug, _id }: any) => (
+              <Link
+                key={_id}
+                onClick={() => setTagId(_id)}
+                scroll={false}
+                href={{ pathname: "/", query: { tag: slug } }}
+                className="text-[#1E2832] text-[16px]"
+              >
+                {displayTitle}
+              </Link>
             ))}
           </div>
-
           <PrimaryButton
             name="filter"
             class="bg-[#1e2832] text-white"
             iconItem={faFilter}
           />
         </div>
+
         <div className="flex flex-wrap p-[6px] m-4 mt-[40px]">
-          {productCardData.map((cardData) => (
-            <div
-              className="lg:w-1/4 md:w-1/2 px-2 w-full mb-5 hover:shadow-2xl duration-200 hover:mt-[-10px] py-2"
-              key={cardData.id}
-            >
-              <ProductCard {...cardData} />
-            </div>
-          ))}
+          {data.catalogItems &&
+            data.catalogItems.edges.map(({ node }: any) => (
+              <div
+                key={node.product._id}
+                className="lg:w-1/4 md:w-1/2 px-2 w-full mb-5 hover:shadow-2xl duration-200 hover:mt-[-10px] py-2"
+              >
+                <ProductCard {...node.product} />
+              </div>
+            ))}
         </div>
       </section>
     </>
