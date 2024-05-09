@@ -8,11 +8,6 @@ import Link from "next/link";
 function Products() {
   const [tagId, setTagId] = useState('');
 
-  useEffect(() => {
-
-    setTagId("");
-    
-  }, []);
 
   const GET_PRODUCTS = gql`
     query GetProducts($tagId: ID!) {
@@ -56,8 +51,7 @@ function Products() {
     variables: { tagId },
   });
 
-  // console.log()
-
+  console.log(data);
 
   if (loading) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
