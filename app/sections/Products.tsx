@@ -1,51 +1,54 @@
-import React, { useState, useEffect } from "react";
-import PrimaryButton from "../components/PrimaryButton";
+import React, { useState } from "react";
 import { faFilter } from "@fortawesome/free-solid-svg-icons";
-import ProductCard from "../components/ProductCard";
-import { useQuery, gql } from "@apollo/client";
+import { useQuery } from "@apollo/client";
 import Link from "next/link";
+
+import { gql } from "@/__generated__/gql"
+
+import ProductCard from "../components/ProductCard";
+import PrimaryButton from "../components/PrimaryButton";
 
 function Products() {
   const [tagId, setTagId] = useState('');
 
-
-  const GET_PRODUCTS = gql`
-    query GetProducts($tagId: ID!) {
-      tags(shopId: "cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ==") {
-        nodes {
-          name
-          displayTitle
-          slug
-          _id
-        }
-      }
-      catalogItems(
-        shopIds: ["cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ=="]
-        tagIds: [$tagId]
-      ) {
-        edges {
-          node {
-            ... on CatalogItemProduct {
-              product {
-                title
-                description
-                _id
-                variants {
-                  _id
-                  title
-                  media {
-                    URLs {
-                      small
-                    }
-                  }
+    const GET_PRODUCTS = gql(/* GraphQL */ `
+        query GetProducts($tagId: ID!) {
+            tags(shopId: "cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ==") {
+                nodes {
+                    name
+                    position
+                    displayTitle
+                    slug
+                    _id
                 }
-              }
             }
-          }
+            catalogItems(
+                shopIds: ["cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ=="]
+                tagIds: [$tagId]
+            ) {
+                edges {
+                    node {
+                        ... on CatalogItemProduct {
+                            product {
+                                title
+                                description
+                                _id
+                                variants {
+                                    _id
+                                    title
+                                    media {
+                                        URLs {
+                                            small
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-      }
-    }
-  `;
+    `);
 
   const { loading, error, data } = useQuery(GET_PRODUCTS, {
     variables: { tagId },
@@ -68,7 +71,7 @@ function Products() {
             >
               All Products
             </Link>
-            {data.tags.nodes.map(({ displayTitle, slug, _id }: any) => (
+            {data?.tags?.nodes?.map(({ displayTitle, slug, _id }: any) => (
               <Link
                 key={_id}
                 onClick={() => setTagId(_id)}
@@ -88,8 +91,8 @@ function Products() {
         </div>
 
         <div className="flex flex-wrap p-[6px] m-4 mt-[40px]">
-          {data.catalogItems &&
-            data.catalogItems.edges.map(({ node }: any) => (
+          {data?.catalogItems &&
+            data.catalogItems.edges?.map(({ node }: any) => (
               <div
                 key={node.product._id}
                 className="lg:w-1/4 md:w-1/2 px-2 w-full mb-5 hover:shadow-2xl duration-200 hover:mt-[-10px] py-2"
