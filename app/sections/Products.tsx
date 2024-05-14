@@ -7,6 +7,13 @@ import Link from "next/link";
 
 function Products() {
   const [tagId, setTagId] = useState('');
+  const [defaultProducts, setDefaultProducts] = useState([]);
+
+  useEffect(() => {
+
+    setTagId('');
+
+  }, []);
 
 
   const GET_PRODUCTS = gql`
@@ -48,12 +55,20 @@ function Products() {
   `;
 
   const { loading, error, data } = useQuery(GET_PRODUCTS, {
-    variables: { tagId },
+    variables: { tagId, shopIds: ["cmVhY3Rpb24vc2hvcDpGN2ZrM3plR3o4anpXaWZzQQ=="] },
+    onCompleted: (data) => {
+      if (!tagId) {
+        // Set default products when query is completed and tagId is empty
+        setDefaultProducts(data.catalogItems.edges);
+      }
+    }
   });
 
-  console.log(data);
+  
 
-  if (loading) return <p>Loading...</p>;
+  console.log("Full Products:", data ? data.catalogItems.edges : null); // Check the full products in console
+
+  if (loading && defaultProducts.length === 0) return <p>Loading...</p>;
   if (error) return <p>Error: {error.message}</p>;
 
   return (
@@ -88,15 +103,14 @@ function Products() {
         </div>
 
         <div className="flex flex-wrap p-[6px] m-4 mt-[40px]">
-          {data.catalogItems &&
-            data.catalogItems.edges.map(({ node }: any) => (
-              <div
-                key={node.product._id}
-                className="lg:w-1/4 md:w-1/2 px-2 w-full mb-5 hover:shadow-2xl duration-200 hover:mt-[-10px] py-2"
-              >
-                <ProductCard {...node.product} />
-              </div>
-            ))}
+          {(tagId ? data.catalogItems.edges : defaultProducts).map(({ node }: any) => (
+            <div
+              key={node.product._id}
+              className="lg:w-1/4 md:w-1/2 px-2 w-full mb-5 hover:shadow-2xl duration-200 hover:mt-[-10px] py-2"
+            >
+              <ProductCard {...node.product} />
+            </div>
+          ))}
         </div>
       </section>
     </>

@@ -2,7 +2,7 @@ import React from 'react'
 import Image from 'next/image'
 import productImage from "../../public/Assets/images/product_7.png"
 
-interface cardProps {
+interface productProps {
   id?: number,
   title: string,
   image: string | any,
@@ -10,9 +10,9 @@ interface cardProps {
   category: string
 }
 
-function ProductCard(props: cardProps) {
+function ProductCard(props: productProps) {
   return (
-    <div className='product-card'>
+    <div>
       <Image src={productImage} alt='' className='h-[400px] w-[100%]' />
       <h6 className='mt-[16px] text-[#1E2832] font-medium text-[17px]'>{props.title}</h6>
       <div className="flex justify-between items-center mt-[16px]">
